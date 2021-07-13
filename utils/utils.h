@@ -17,7 +17,10 @@ enum class MetaCommandResult {
 enum class PrepareStatementResult {
     PREPARE_STATEMENT_SUCCESS,
     UNRECOGNIZED_PREPARE_STATEMENT,
-    PREPARE_SYNTAX_ERROR
+    PREPARE_SYNTAX_ERROR,
+    PREPARE_STRING_OUT_OF_RANGE,
+    PREPARE_ID_OUT_OF_RANGE,
+    PREPARE_NEGATIVE_ID
 };
 
 enum class StatementType {
@@ -34,7 +37,8 @@ void print_prompt();
 
 MetaCommandResult execute_meta_command(std::string command);
 
-PrepareStatementResult prepare_statement(std::string command, Statement& statement);
+PrepareStatementResult prepare_insert(const std::string& command, Statement& statement);
+PrepareStatementResult prepare_statement(const std::string& command, Statement& statement);
 
 Table* create_table();
 void free_table(Table* table);

@@ -1,6 +1,8 @@
 #include "utils.h"
 #include <iostream>
+#include <sstream>
 #include <memory>
+#include <cstring>
 
 void print_prompt() {
     std::cout << "c++db > ";
@@ -20,21 +22,56 @@ MetaCommandResult execute_meta_command(std::string command) {
     return MetaCommandResult::META_COMMAND_SUCCESS;
 }
 
+PrepareStatementResult prepare_insert(const std::string& command, Statement& statement) {
+    statement.type = StatementType::STATEMENT_INSERT;
+
+    std::stringstream ss(command);
+    std::string query;
+    std::string id_str;
+    std::string username;
+    std::string email;
+
+    ss >> query;
+    ss >> id_str;
+    ss >> username;
+    ss >> email;
+
+    if (query.empty() || id_str.empty() || username.empty() || email.empty()) {
+        return PrepareStatementResult::PREPARE_SYNTAX_ERROR;
+    }
+
+    try {
+        int id = stoi(id_str);
+
+        if (id < 0) {
+            return PrepareStatementResult::PREPARE_NEGATIVE_ID;
+        }
+
+        if ((username.length() + 1) > COLUMN_USERNAME_SIZE) {
+            return PrepareStatementResult::PREPARE_STRING_OUT_OF_RANGE;
+        }
+
+        if ((email.length() + 1) > COLUMN_EMAIL_SIZE) {
+            return PrepareStatementResult::PREPARE_STRING_OUT_OF_RANGE;
+        }
+
+        statement.row_to_insert.id = id;
+        strcpy(statement.row_to_insert.username, username.c_str());
+        strcpy(statement.row_to_insert.email, email.c_str());
+
+    } catch(std::invalid_argument& exceptione){
+        return PrepareStatementResult::PREPARE_SYNTAX_ERROR; 
+    } catch (std::out_of_range& exception) {                    // overflow
+        return PrepareStatementResult::PREPARE_ID_OUT_OF_RANGE;
+    }
+    
+    return PrepareStatementResult::PREPARE_STATEMENT_SUCCESS;
+}
+
 // SQL Compiler
-PrepareStatementResult prepare_statement(std::string command, Statement& statement) {  
+PrepareStatementResult prepare_statement(const std::string& command, Statement& statement) {  
     if (command.compare(0, 6, "insert") == 0) {
-        statement.type = StatementType::STATEMENT_INSERT;
-
-        int args = sscanf(command.c_str(), "insert %d %s %s"
-                                    , &(statement.row_to_insert.id)
-                                    , statement.row_to_insert.username
-                                    , statement.row_to_insert.email);
-
-        if (args < 3) {
-            return PrepareStatementResult::PREPARE_SYNTAX_ERROR;
-        }                          
-
-        return PrepareStatementResult::PREPARE_STATEMENT_SUCCESS;
+        return prepare_insert(command, statement);
 
     } else if (command.compare(0, 6, "select") == 0) {
         statement.type = StatementType::STATEMENT_SELECT;

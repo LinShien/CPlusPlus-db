@@ -34,15 +34,25 @@ int main(int argc, char* argv[]) {
             case (PrepareStatementResult::PREPARE_STATEMENT_SUCCESS):
                 break;
             
-            case (PrepareStatementResult::UNRECOGNIZED_PREPARE_STATEMENT): {
+            case (PrepareStatementResult::UNRECOGNIZED_PREPARE_STATEMENT): 
                 std::cerr << "Unrecognized statement: '" << command << "'" << std::endl;
                 continue;
-            }
-
-            case (PrepareStatementResult::PREPARE_SYNTAX_ERROR): {
+            
+            case (PrepareStatementResult::PREPARE_SYNTAX_ERROR): 
                 std::cerr << "Syntax error. Could not parse the statement: '" << command << "'" << std::endl;
                 continue;
-            }
+            
+            case (PrepareStatementResult::PREPARE_STRING_OUT_OF_RANGE):
+                std::cerr << "String is too long to parse: '" << command << "'" << std::endl;
+                continue;
+
+            case (PrepareStatementResult::PREPARE_ID_OUT_OF_RANGE):
+                std::cerr << "ID field overflow: '" << command << "'" << std::endl;
+                continue;
+            
+            case (PrepareStatementResult::PREPARE_NEGATIVE_ID):
+                std::cerr << "ID can not be negative: '" << command << "'" << std::endl;
+                continue;
         }
 
         switch (execute_statement(statement, *table)) {
