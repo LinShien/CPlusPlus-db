@@ -3,6 +3,8 @@
 #include <sstream>
 #include <memory>
 #include <cstring>
+#include <fstream>
+#include <filesystem>
 
 void print_prompt() {
     std::cout << "c++db > ";
@@ -14,7 +16,7 @@ void print_row(const Row& row) {
 
 MetaCommandResult execute_meta_command(std::string command) {
     if (command.compare(".exit") == 0 || command.compare(".EXIT") == 0) {
-        exit(EXIT_SUCCESS);
+        return MetaCommandResult::DATABASE_DISCONNECT;
     } else {
         return MetaCommandResult::UNRECOGNIZED_META_COMMAND;
     }
@@ -133,13 +135,8 @@ void deserialize_row(const void* source, Row* desination) {
 
 void* fetch_row(Table& table, int row_num) {
     int page_num = row_num / ROWS_PER_PAGE;
-    void* page = table.pages[page_num];
-
-    if (page == nullptr) {
-        table.pages[page_num] = malloc(PAGE_SIZE);
-        page = table.pages[page_num];
-    }
-
+    void* page = table.pager->get_page(page_num);
+    
     int row_offset = row_num % ROWS_PER_PAGE;     
     int byte_offset = row_offset * ROW_SIZE;
 

@@ -4,10 +4,18 @@
 #include <string>
 
 int main(int argc, char* argv[]) {
-    Table* table = new Table;
+    if (argc < 2) {
+        std::cerr << "Must supply a database filename." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    const char* file_name = argv[1];
+
+    Table table{std::string(file_name)};
     std::string command = "";
 
     while (true) {
+
         print_prompt();
 
         getline(std::cin, command, '\n');
@@ -21,10 +29,12 @@ int main(int argc, char* argv[]) {
             case (MetaCommandResult::META_COMMAND_SUCCESS):
                 continue;
                 
-            case (MetaCommandResult::UNRECOGNIZED_META_COMMAND): {
+            case (MetaCommandResult::UNRECOGNIZED_META_COMMAND): 
                 std::cerr << "Unrecognized meta command: '" << command << "'" << std::endl;
                 continue;
-            }   
+
+            case (MetaCommandResult::DATABASE_DISCONNECT):
+                return 0;   
             }
         }
         
@@ -55,7 +65,7 @@ int main(int argc, char* argv[]) {
                 continue;
         }
 
-        switch (execute_statement(statement, *table)) {
+        switch (execute_statement(statement, table)) {
             case (ExecuteResult::EXECUTE_SUCCESS): {
                 std::cout << "Executed. " << std::endl;
                 break;

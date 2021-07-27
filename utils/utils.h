@@ -11,7 +11,8 @@ enum class ExecuteResult {
 
 enum class MetaCommandResult {
     META_COMMAND_SUCCESS,
-    UNRECOGNIZED_META_COMMAND
+    UNRECOGNIZED_META_COMMAND,
+    DATABASE_DISCONNECT
 };
 
 enum class PrepareStatementResult {
@@ -40,12 +41,12 @@ MetaCommandResult execute_meta_command(std::string command);
 PrepareStatementResult prepare_insert(const std::string& command, Statement& statement);
 PrepareStatementResult prepare_statement(const std::string& command, Statement& statement);
 
-Table* create_table();
-void free_table(Table* table);
-
 ExecuteResult execute_insert(const Statement& statement, Table& table);
 ExecuteResult execute_select(const Statement& statement, const Table& table);
 ExecuteResult execute_statement(const Statement& statement, Table& table);
+
+Pager* pager_open(std::string file_name);
+Table* dp_open(std::string file_name);
 
 void serialize_row(const Row* source, void* destination);
 void deserialize_row(const void* source, Row* destination);

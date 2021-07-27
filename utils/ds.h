@@ -1,6 +1,8 @@
 #ifndef _DS_H_
 #define _DS_H_
 
+#include <fstream>
+
 const int COLUMN_USERNAME_SIZE = 32;
 const int COLUMN_EMAIL_SIZE = 255;
 
@@ -41,16 +43,36 @@ const int TABLE_MAX_PAGES = 100;
 const int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
 const int TABLE_MAX_ROWS = TABLE_MAX_PAGES * ROWS_PER_PAGE;
 
+/**
+ * A data structure to support data persistent on disk
+ * We can use this object to retrieve data on disk to memory
+ */
+
+class Pager {
+    public:
+        std::fstream fs;
+        unsigned int file_length;
+        void* pages[TABLE_MAX_PAGES];          // cache
+
+        Pager(std::string file_name);
+        ~Pager();
+
+        void* get_page(int page_num);
+        void flush(int page_num, unsigned int size);
+};
+
 /** 
  * A data structure to represent Table in database
- * For simplicity, We now store all the rows into pages represented as array instead of B-tree which is a very practical way 
+ * For simplicity, We now store all the rows into pages 
+ * represented as array instead of B-tree which is a very practical way 
  */
+
 class Table {
     public:
         unsigned int num_rows;
-        void* pages[TABLE_MAX_PAGES];
+        Pager* pager;
 
-        Table();
+        Table(std::string file_name);
         ~Table();       
 };
 
