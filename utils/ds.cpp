@@ -6,7 +6,7 @@
 #include <string>
 
 Pager::Pager(std::string file_name) {
-    fs.open(file_name, std::fstream::out | std::fstream::app);
+    fs.open(file_name, std::fstream::out | std::fstream::in);
 
     if (fs.fail()) {
         std::cout << "Unable to open file" << std::endl;
@@ -27,8 +27,6 @@ Pager::~Pager() {
         delete (char*) pages[i];
         pages[i] = nullptr;
     }
-
-    std::cout << "Pager destructor called" << std::endl;
 
     fs.flush();
     fs.close();
@@ -56,9 +54,9 @@ void* Pager::get_page(int page_num) {
         // Cache miss. Allocate memory and load more data from the filestream
         void* page = malloc(PAGE_SIZE);
 
-        unsigned int num_pages = file_length / PAGE_SIZE;    // uint32_t
+        unsigned int num_pages = file_length / PAGE_SIZE;    
 
-        if (file_length % PAGE_SIZE) {                       // a not full page
+        if (file_length % PAGE_SIZE) {                       // an additional not full page
             num_pages += 1;
         }
         
@@ -67,7 +65,7 @@ void* Pager::get_page(int page_num) {
             fs.read((char*) page, PAGE_SIZE);
         }
 
-        if (fs.eof()) {
+        if (fs.eof()) {         // avoid read out of the file scope and cause error then affect the following operations on fs
             fs.clear();
         }
         
@@ -90,8 +88,6 @@ Table::~Table() {
     std::cout << num_rows << std::endl;                  
     unsigned int num_full_pages = num_rows / ROWS_PER_PAGE;
 
-    std::cout << "Table destructor called" << std::endl;
-
     for (unsigned int i = 0; i < num_full_pages; ++i) {
         if (pager->pages[i] == nullptr) {
             continue;
@@ -100,7 +96,7 @@ Table::~Table() {
         pager->flush(i, PAGE_SIZE);
     }
 
-    // Last partial page
+    // partial page case
     unsigned int num_additional_rows = num_rows % ROWS_PER_PAGE;
 
     if (num_additional_rows) {
