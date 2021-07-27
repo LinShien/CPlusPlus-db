@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
 
 Pager::Pager(std::string file_name) {
     fs.open(file_name, std::fstream::out | std::fstream::app);
@@ -15,8 +16,6 @@ Pager::Pager(std::string file_name) {
     fs.seekg(0, fs.end);
     file_length = fs.tellg();
     fs.seekg(0, fs.beg);
-
-    std::cout << fs.is_open() << std::endl;
 
     for (int i = 0; i < TABLE_MAX_PAGES; ++i) {
         pages[i] = nullptr;
@@ -62,7 +61,7 @@ void* Pager::get_page(int page_num) {
         if (file_length % PAGE_SIZE) {                       // a not full page
             num_pages += 1;
         }
- 
+        
         if (page_num <= num_pages) {    
             fs.seekg(page_num * PAGE_SIZE, std::ios::beg);
             fs.read((char*) page, PAGE_SIZE);

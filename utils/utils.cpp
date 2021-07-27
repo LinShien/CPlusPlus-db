@@ -125,8 +125,8 @@ void serialize_row(const Row* source, void* destination) {
     // memcpy(((char*) destination) + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
     // memcpy(((char*) destination) + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
 
-    strncpy((char*) (destination + USERNAME_OFFSET), source ->username, USERNAME_SIZE);
-    strncpy((char*) (destination + EMAIL_OFFSET), source ->email, EMAIL_SIZE);
+    strncpy(((char*) destination) + USERNAME_OFFSET, source ->username, USERNAME_SIZE);
+    strncpy(((char*) destination) + EMAIL_OFFSET, source ->email, EMAIL_SIZE);
 }
 
 void deserialize_row(const void* source, Row* destination) {
@@ -136,11 +136,11 @@ void deserialize_row(const void* source, Row* destination) {
 }
 
 void* fetch_row(Table& table, int row_num) {
-    int page_num = row_num / ROWS_PER_PAGE;
+    unsigned int page_num = row_num / ROWS_PER_PAGE;
     void* page = table.pager->get_page(page_num);
     
-    int row_offset = row_num % ROWS_PER_PAGE;     
-    int byte_offset = row_offset * ROW_SIZE;
+    unsigned int row_offset = row_num % ROWS_PER_PAGE;     
+    unsigned int byte_offset = row_offset * ROW_SIZE;
 
     return ((char*) page) + byte_offset;                   // offset in whole table 
 }
