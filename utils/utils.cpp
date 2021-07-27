@@ -4,7 +4,6 @@
 #include <memory>
 #include <cstring>
 #include <fstream>
-#include <filesystem>
 
 void print_prompt() {
     std::cout << "c++db > ";
@@ -123,14 +122,17 @@ ExecuteResult execute_statement(const Statement& statement, Table& table) {
 
 void serialize_row(const Row* source, void* destination) {
     memcpy(((char*) destination) + ID_OFFSET, &(source->id), ID_SIZE);
-    memcpy(((char*) destination) + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
-    memcpy(((char*) destination) + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
+    // memcpy(((char*) destination) + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
+    // memcpy(((char*) destination) + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
+
+    strncpy((char*) (destination + USERNAME_OFFSET), source ->username, USERNAME_SIZE);
+    strncpy((char*) (destination + EMAIL_OFFSET), source ->email, EMAIL_SIZE);
 }
 
-void deserialize_row(const void* source, Row* desination) {
-    memcpy(&(desination->id), ((char*) source) + ID_OFFSET, ID_SIZE);
-    memcpy(&(desination->username), ((char*) source) + USERNAME_OFFSET, USERNAME_SIZE);
-    memcpy(&(desination->email), ((char*) source) + EMAIL_OFFSET, EMAIL_SIZE);
+void deserialize_row(const void* source, Row* destination) {
+    memcpy(&(destination->id), ((char*) source) + ID_OFFSET, ID_SIZE);
+    memcpy(&(destination->username), ((char*) source) + USERNAME_OFFSET, USERNAME_SIZE);
+    memcpy(&(destination->email), ((char*) source) + EMAIL_OFFSET, EMAIL_SIZE);
 }
 
 void* fetch_row(Table& table, int row_num) {
