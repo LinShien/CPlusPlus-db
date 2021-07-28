@@ -51,6 +51,6 @@ Table* dp_open(std::string file_name);
 void serialize_row(const Row* source, void* destination);
 void deserialize_row(const void* source, Row* destination);
 
-void* fetch_row(Table& table, int row_num);
+// void* fetch_row(Table& table, int row_num);
 
 #endif

@@ -76,6 +76,22 @@ class Table {
         ~Table();       
 };
 
+class Cursor {
+    private:
+        Table* table;
+        bool end_of_table;
+
+    public:    
+        unsigned int cur_row;
+
+        Cursor(Table* table, bool table_end);
+        ~Cursor();
+
+        void* fetch_row();
+        void advance();
+        bool eot();
+};
+
 // struct Table {
 //     unsigned int num_rows;
 //     void* pages[TABLE_MAX_PAGES];

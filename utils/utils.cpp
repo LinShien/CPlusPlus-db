@@ -82,24 +82,37 @@ PrepareStatementResult prepare_statement(const std::string& command, Statement& 
     return PrepareStatementResult::UNRECOGNIZED_PREPARE_STATEMENT;
 }
 
+/**
+ * When inserting a row, we open a cursor at the end of table
+ * , then write to that cursor location, then close the cursor.
+ */
 ExecuteResult execute_insert(const Statement& statement, Table& table) {
     if (table.num_rows >= TABLE_MAX_ROWS) {
         return ExecuteResult::EXECUTE_TABLE_FULL;
     }
 
+    Cursor cursor(&table, true);
+
     // insert into table
-    serialize_row(&(statement.row_to_insert), fetch_row(table, table.num_rows));
+    serialize_row(&(statement.row_to_insert), cursor.fetch_row());
     table.num_rows++;
 
     return ExecuteResult::EXECUTE_SUCCESS;
 }
 
+/**
+ * When select a table, we open a cursor at the start of table
+ * , then iterate the table row by row.
+ */
 ExecuteResult execute_select(const Statement& statement, Table& table) {
     Row row;
-
-    for (int i = 0; i < table.num_rows; ++i) {
-        deserialize_row(fetch_row(table, i), &row);
+    Cursor cursor(&table, false);
+    
+    while (!cursor.eot()) {
+        deserialize_row(cursor.fetch_row(), &row);
         print_row(row);
+
+        cursor.advance();
     }
 
     return ExecuteResult::EXECUTE_SUCCESS;
@@ -135,12 +148,12 @@ void deserialize_row(const void* source, Row* destination) {
     memcpy(&(destination->email), ((char*) source) + EMAIL_OFFSET, EMAIL_SIZE);
 }
 
-void* fetch_row(Table& table, int row_num) {
-    unsigned int page_num = row_num / ROWS_PER_PAGE;
-    void* page = table.pager->get_page(page_num);
+// void* fetch_row(Table& table, int row_num) {
+//     unsigned int page_num = row_num / ROWS_PER_PAGE;
+//     void* page = table.pager->get_page(page_num);
     
-    unsigned int row_offset = row_num % ROWS_PER_PAGE;     
-    unsigned int byte_offset = row_offset * ROW_SIZE;
+//     unsigned int row_offset = row_num % ROWS_PER_PAGE;     
+//     unsigned int byte_offset = row_offset * ROW_SIZE;
 
-    return ((char*) page) + byte_offset;                   // offset in whole table 
-}
+//     return ((char*) page) + byte_offset;                   // offset in whole table 
+// }

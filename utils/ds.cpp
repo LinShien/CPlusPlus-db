@@ -84,8 +84,7 @@ Table::Table(std::string file_name) {      // database open
  * database close and flush all the caches to the disk
  * , destructor will not be called after exit() called
  */
-Table::~Table() {         
-    std::cout << num_rows << std::endl;                  
+Table::~Table() {                      
     unsigned int num_full_pages = num_rows / ROWS_PER_PAGE;
 
     for (unsigned int i = 0; i < num_full_pages; ++i) {
@@ -108,3 +107,33 @@ Table::~Table() {
     delete pager;
 }
 
+Cursor::Cursor(Table* target, bool table_end) {
+    table = target;
+    cur_row = (table_end) ? table->num_rows : 0;
+    end_of_table = (table_end) ? true : (table->num_rows == 0);
+}
+
+Cursor::~Cursor() {}
+
+// fetch a new row from the table end to insert a it to the table
+void* Cursor::fetch_row() {
+    unsigned int page_num = cur_row / ROWS_PER_PAGE;
+    void* page = table->pager->get_page(page_num);
+    
+    unsigned int row_offset = cur_row % ROWS_PER_PAGE;     
+    unsigned int byte_offset = row_offset * ROW_SIZE;
+
+    return ((char*) page) + byte_offset;                   // offset in whole table 
+}
+
+void Cursor::advance() {
+    cur_row += 1;
+
+    if (cur_row >= table->num_rows) {
+        end_of_table = true;
+    }
+}
+
+bool Cursor::eot() {
+    return end_of_table;
+}
